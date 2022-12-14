@@ -5,7 +5,6 @@ const checkAge = require("../../utilities/age");
 const router = Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { generateRefreshToken } = require("../../utilities/jtw");
 const ProtectedRoute = require("../../middleware/ProtectedRoute");
 const responseBuilder = require("../../utilities/responseBuilder");
 
@@ -181,6 +180,23 @@ router.post("/", async (req, res) => {
   return responseBuilder(res, 200, false, accessToken);
 });
 
+// Retrieve User (SELF)
+router.get("/", ProtectedRoute, async (req, res) => {
+  const member = await prisma.member.findFirst({
+    where: { id: req.member.id },
+  });
+
+  if (!member)
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "There is no member that exists with the identifier provided."
+    );
+
+  return responseBuilder(res, 200, false, member);
+});
+
 // Retrieve User
 router.get("/:id", ProtectedRoute, async (req, res) => {
   const member = await prisma.member.findFirst({
@@ -202,7 +218,7 @@ router.get("/:id", ProtectedRoute, async (req, res) => {
     delete member.privacyAgree;
   }
 
-  return res.status(200).json(member).end();
+  return responseBuilder(res, 200, false, member);
 });
 
 // Delete User
