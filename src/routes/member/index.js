@@ -221,10 +221,10 @@ router.get("/:id", ProtectedRoute, async (req, res) => {
   return responseBuilder(res, 200, false, member);
 });
 
-// Delete User
-router.delete("/:id", ProtectedRoute, async (req, res) => {
+// Delete User (Self)
+router.delete("/", ProtectedRoute, async (req, res) => {
   const member = await prisma.member.findFirst({
-    where: { id: req.params.id },
+    where: { id: req.member.id },
     include: {
       roles: true,
     },
@@ -243,8 +243,37 @@ router.delete("/:id", ProtectedRoute, async (req, res) => {
       res,
       403,
       true,
-      "You do not have permission to delete other member accounts."
+      "You cannot delete other member accounts through this route, if this is an issue you should contact support."
     );
+
+  return responseBuilder(
+    res,
+    200,
+    false,
+    "You have successfully deleted your account."
+  );
+});
+
+// Delete User (Other)
+router.delete("/:id", ProtectedRoute, async (req, res) => {
+  const member = await prisma.member.findFirst({
+    where: { id: req.params.id },
+    include: {
+      roles: true,
+    },
+  });
+
+  if (!member)
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "There is no member that exists with that identifier."
+    );
+
+  /**
+   * ADD LOGIC SO THEY CAN'T GO NUTS DELETING EACH OTHER
+   */
 
   return responseBuilder(
     res,
