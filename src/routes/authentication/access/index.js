@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const { PrismaClient } = require("@prisma/client");
+const responseBuilder = require("../../../utilities/responseBuilder");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const ProtectedRoute = require("../../../middleware/ProtectedRoute");
@@ -10,47 +11,43 @@ const prisma = new PrismaClient();
 // Login route
 router.post("/", async (req, res) => {
   if (!req.body.username)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a username to access your account.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide a username to access your account."
+    );
   if (!req.body.password)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a password to access your account.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide a password to access your account."
+    );
 
   const { username, password } = req.body;
 
   const userExists = (await prisma.member.count({ where: { username } })) > 0;
 
   if (!userExists)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "We were unable to identify the account you're trying to access.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "We were unable to identify the account you're trying to access."
+    );
 
   const member = await prisma.member.findFirst({ where: { username } });
 
   const passwordCorrect = bcrypt.compareSync(password, member.password);
 
   if (!passwordCorrect)
-    return res
-      .status(200)
-      .json({
-        error: true,
-        data: "We are unable to provide you access to the account with the credentials provided.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      403,
+      true,
+      "We are unable to provide you access to the account with the credentials you provided."
+    );
 
   const accessToken = jwt.sign(
     {
@@ -73,15 +70,14 @@ router.post("/", async (req, res) => {
   });
 
   if (!newSession)
-    return res
-      .status(500)
-      .json({
-        error: true,
-        data: "We ran into an issue when creating a new session for you.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      500,
+      true,
+      "We ran into an issue when creating a new session for you."
+    );
 
-  return res.status(200).json({ error: false, data: { accessToken } }).end();
+  return responseBuilder(res, 200, false, accessToken);
 });
 
 // Logout route
@@ -89,18 +85,19 @@ router.delete("/", ProtectedRoute, async (req, res) => {
   const logout = await prisma.session.delete({ where: { id: req.session.id } });
 
   if (!logout)
-    return res
-      .status(500)
-      .json({
-        error: true,
-        data: "We ran into an unexpected issue when ending your current session.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      500,
+      true,
+      "We ran into an unexpected issue when ending your current session."
+    );
 
-  return res
-    .status(200)
-    .json({ error: false, data: "You have successfully ended your session." })
-    .end();
+  return responseBuilder(
+    res,
+    200,
+    false,
+    "You have successfully terminated your session."
+  );
 });
 
 module.exports = router;

@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { generateRefreshToken } = require("../../utilities/jtw");
 const ProtectedRoute = require("../../middleware/ProtectedRoute");
+const responseBuilder = require("../../utilities/responseBuilder");
 
 const prisma = new pma.PrismaClient();
 
@@ -17,91 +18,84 @@ router.post("/", async (req, res) => {
   // Check basic security and design requirements
 
   if (!parameters.username)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a username to register.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide a username you want to use."
+    );
 
   if (!parameters.emailAddress)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide an email address to register.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide an email address you want to use."
+    );
 
   if (!parameters.displayName)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a display name to register.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide a display name you want to use."
+    );
 
   if (!parameters.password)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a password to register.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide a password you want to use."
+    );
 
   if (!parameters.birthdate)
-    return res.status(400).json({
-      error: true,
-      data: "You need to provide a birthdate to register.",
-    });
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide your data of birth to register."
+    );
 
   if (!parameters.displayName.match(regex.displayName))
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a display name that only uses numbers, letters, underscores, dashes, spaces, and periods and must be 3-16 characters in length.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide a display name that only uses numbers, letters, underscores, dashes, spaces, and periods and must be 3-16 characters in length."
+    );
 
   if (!parameters.username.match(regex.username))
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a valid username that only uses number, letters, underscores, dashes, periods and must be 3-10 characters in length.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide a valid username that only uses numbers, letters, underscores, dashes, periods and must be 3-10 characters in length."
+    );
 
   if (!parameters.emailAddress.match(regex.emailAddress))
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a valid email address to register.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide an email address you want to use."
+    );
 
   if (!parameters.password.match(regex.password))
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to provide a password that contains at least 8 characters, at least one letter and one number.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to provide a password that contains at least 8 characters, at least one letter and one number."
+    );
 
   if (!checkAge(new Date(parameters.birthdate), 18))
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You need to be 18 years or older to utilize this service.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You need to be 18 years or older to utilize this service."
+    );
 
   // Check for existing records
   const usernameExists =
@@ -114,43 +108,40 @@ router.post("/", async (req, res) => {
     })) > 0;
 
   if (usernameExists)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "The username you provided is already taken by another user.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "The username you provided is taken by another member."
+    );
 
   if (emailExists)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "The email you provided is already associated to an account.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "The email you provided is taken by another member."
+    );
 
   if (!parameters.tosAgree)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You must agree to our Terms of Service to register for this service.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You must agree to our Terms of Service to register for this service."
+    );
 
   if (!parameters.privacyAgree)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "You must accept and understand our Privacy Policy before registering.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "You must accept our Privacy Policy before you can register for this service."
+    );
 
   const salt = bcrypt.genSaltSync();
   const passwordHash = bcrypt.hashSync(parameters.password, salt);
+
   const accessToken = jwt.sign(
     {
       username: parameters.username,
@@ -185,44 +176,24 @@ router.post("/", async (req, res) => {
     })
     .then((member) => member);
 
-  if (newMember.error)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: newMember.data,
-      })
-      .end();
+  if (newMember.error) return responseBuilder(res, 400, true, newMember.data);
 
-  return res.status(200).json({ error: false, data: { accessToken } }).end();
+  return responseBuilder(res, 200, false, accessToken);
 });
 
 // Retrieve User
 router.get("/:id", ProtectedRoute, async (req, res) => {
-  const memberExists =
-    (await prisma.member.count({ where: { id: req.params.id } })) > 0;
-
-  if (!memberExists)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "There is no member that exists with that identifier.",
-      })
-      .end();
-
   const member = await prisma.member.findFirst({
     where: { id: req.params.id },
   });
 
   if (!member)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "There was an issue while retrieving information about the member provided.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "There is no member that exists with the identifier provided."
+    );
 
   if (member.id != req.member.id) {
     delete member.password;
@@ -236,10 +207,14 @@ router.get("/:id", ProtectedRoute, async (req, res) => {
 
 // Delete User
 router.delete("/:id", ProtectedRoute, async (req, res) => {
-  const memberExists =
-    (await prisma.member.count({ where: { id: req.params.id } })) > 0;
+  const member = await prisma.member.findFirst({
+    where: { id: req.params.id },
+    include: {
+      roles: true,
+    },
+  });
 
-  if (!memberExists)
+  if (!member)
     return res
       .status(400)
       .json({
@@ -248,14 +223,7 @@ router.delete("/:id", ProtectedRoute, async (req, res) => {
       })
       .end();
 
-  const member = await prisma.member.findFirst({
-    where: { id: req.params.id },
-    include: {
-      roles: true,
-    },
-  });
-
-  if (req.member.roles.length === 0 && req.member.id !== member.id)
+  if (req.member.id !== member.id)
     return res
       .status(403)
       .json({
@@ -264,7 +232,12 @@ router.delete("/:id", ProtectedRoute, async (req, res) => {
       })
       .end();
 
-  return res.status(200).json(member).end();
+  return responseBuilder(
+    res,
+    200,
+    false,
+    "You have successfully deleted the account provided."
+  );
 });
 
 // Update User
