@@ -231,22 +231,20 @@ router.delete("/:id", ProtectedRoute, async (req, res) => {
   });
 
   if (!member)
-    return res
-      .status(400)
-      .json({
-        error: true,
-        data: "There is no member that exists with that identifier.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      400,
+      true,
+      "There is no member that exists with that identifier."
+    );
 
   if (req.member.id !== member.id)
-    return res
-      .status(403)
-      .json({
-        error: true,
-        data: "You do not have permission to delete other member accounts.",
-      })
-      .end();
+    return responseBuilder(
+      res,
+      403,
+      true,
+      "You do not have permission to delete other member accounts."
+    );
 
   return responseBuilder(
     res,
