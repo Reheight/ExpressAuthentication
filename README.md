@@ -28,6 +28,17 @@ Install the dependencies start the server
 ```sh
 cd expressauthentication
 npm i
+```
+
+Setup the connection url for MySQL in .env and run the following command
+
+```sh
+npx prisma db push
+```
+
+Start Application
+
+```sh
 npm run start
 ```
 
