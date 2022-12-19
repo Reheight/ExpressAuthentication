@@ -1,3 +1,9 @@
+/**
+ *
+ * @param {Date} birthdate Birthddate field
+ * @param {Number} age Age limit
+ * @returns {Boolean}
+ */
 module.exports = function (birthdate = new Date(), age = 10) {
   const now = new Date();
 
