@@ -4,7 +4,7 @@
 
 Express Authentication is a boilerplate for Express authentication using a form of 'access-tokens' but this should not be mistaken with OAuth2 as this does not contain refresh tokens and such. Once a token expires, they will need to login again.
 
-> You can actually keep users logged in by refreshing the access-token in the backend by checking if the session still exists but is just expired and if that's true then you can update the current access-token with a updated one and feed that to the client.
+> You can (BUT SHOULD NOT) keep users logged in by refreshing the access-token in the backend by checking if the session still exists but is just expired and if that's true then you can update the current access-token with a updated one and feed that to the client. Know this isn't as secure as implementing refresh tokens and following OAuth2 or alike standards.
 
 ## Technology
 
