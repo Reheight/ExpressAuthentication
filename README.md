@@ -13,7 +13,7 @@ ExpressAuthentication uses a number of open source projects to work properly:
 - [Express] - Backend server to host the API
 - [Prisma] - ORM for SQL
 - [@Prisma/Client] - Client for Prisma
-- [bcrypt] - Secure Encryption
+- [bcrypt] - Secure Hashing
 - [cors] - Cross-Origin Protection
 - [body-parser] - Middleware to assist us reading requests in Express
 - [dotenv] - Creates an easy way to access .env variables
